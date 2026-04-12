@@ -30,7 +30,7 @@ This project helped me learn and apply:
 - Integrating a separate ML microservice with a main backend
 
 ---
-
+.
 ## 📖 About the Project
 
 **NutriGuide AI** is an AI-powered nutrition and meal planning web application. It takes your personal health data (age, weight, height, activity level, fitness goal) and uses a machine learning model to give you a personalized daily calorie target and meal recommendations.

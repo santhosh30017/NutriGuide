@@ -75,6 +75,8 @@ const ProgressPage = () => {
     try {
       await progressService.logMeal({
         mealName,
+        category:'snack',
+        servings:1,
         calories: parseFloat(mealCalories),
         protein: 0,
         carbohydrates: 0,
@@ -109,32 +111,31 @@ const ProgressPage = () => {
       toast.error('Failed to log exercise')
     }
   }
-
-  const handleLogWater = async () => {
-    if (!waterAmount || waterAmount <= 0) {
-      toast.error('Please enter a valid amount')
-      return
-    }
-    try {
-      const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:5002/api/progress/log-water', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ amount: waterAmount })
-      })
-      const data = await res.json()
-      if (data.success) {
-        setWaterIntake(data.data.waterIntake)
-        toast.success(`💧 Logged ${waterAmount}ml of water!`)
-        setWaterAmount(250)
-      }
-    } catch (error) {
-      toast.error('Failed to log water')
-    }
+const handleLogWater = async (amount = waterAmount) => {
+  if (!amount || Number(amount) <= 0) {
+    toast.error('Please enter a valid amount')
+    return
   }
+
+  try {
+    const data = await progressService.logWater(Number(amount))
+
+    if (data.success) {
+      setWaterIntake(Number(data.data.waterIntake))
+      toast.success(`💧 Logged ${amount}ml of water!`)
+      setWaterAmount(250)
+    } else {
+      toast.error(data.message || 'Failed to log water')
+    }
+  } catch (error) {
+    console.error('Log water error:', error)
+    console.error('Server response:', error.response?.data)
+
+    toast.error(
+      error.response?.data?.message || 'Failed to log water'
+    )
+  }
+}
 
   if (isLoading) {
     return (
@@ -323,7 +324,7 @@ const ProgressPage = () => {
                 key={amount}
                 onClick={() => {
                   setWaterAmount(amount)
-                  handleLogWater()
+                  handleLogWater(amount)
                 }}
                 className="flex-1 bg-white hover:bg-blue-50 border-2 border-blue-300 rounded-xl py-3 px-4 font-bold text-blue-700 transition-all hover:scale-105"
               >
@@ -334,8 +335,9 @@ const ProgressPage = () => {
               onClick={() => {
                 const custom = prompt('Enter custom amount (ml):')
                 if (custom && !isNaN(custom)) {
-                  setWaterAmount(parseInt(custom))
-                  handleLogWater()
+                  const customAmount=parseInt(custom)
+                  setWaterAmount(customAmount)
+                  handleLogWater(customAmount)
                 }
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 px-6 font-bold transition-all hover:scale-105"

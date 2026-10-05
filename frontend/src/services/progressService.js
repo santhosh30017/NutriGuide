@@ -21,6 +21,10 @@ export const progressService = {
     const response = await api.post('/progress/log-meal', mealData)
     return response.data
   },
+  logExercise: async (exerciseData) => {
+    const response = await api.post('/progress/log-exercise', exerciseData)
+    return response.data
+  },
   /**
   * Log water intake
   */

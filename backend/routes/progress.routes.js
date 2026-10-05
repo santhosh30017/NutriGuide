@@ -7,6 +7,7 @@ import express from 'express';
 import {
   getTodayProgress,
   logMeal,
+  logExercise,
   updateWeight,
   getProgressHistory,
   getAnalytics,
@@ -30,6 +31,7 @@ router.use(protect);
 
 router.get('/today', getTodayProgress);
 router.post('/log-meal', logMealValidation, logMeal);
+router.post('/log-exercise', logExercise);
 router.put('/update-weight', updateWeightValidation, updateWeight);
 router.get('/history', dateRangeValidation, getProgressHistory);
 router.get('/analytics', getAnalytics);

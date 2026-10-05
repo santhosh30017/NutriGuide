@@ -48,17 +48,25 @@ app.use(helmet());
 const allowedOrigins = [
   normalizeUrl(process.env.FRONTEND_URL),
   'http://localhost:5173',
-  'http://localhost:3000'
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else if (
+      process.env.NODE_ENV === 'development' &&
+      (origin.startsWith('http://localhost:') ||
+       origin.startsWith('http://127.0.0.1:'))
+    ) {
       callback(null, true);
     } else {
+      console.log('Blocked CORS origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -76,10 +84,11 @@ if (process.env.NODE_ENV === 'development') {
 
 // Rate limiting - prevent brute force attacks
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100,
   message: 'Too many requests from this IP, please try again later.'
 });
+
 app.use('/api/', limiter);
 
 // ======================

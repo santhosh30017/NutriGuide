@@ -51,14 +51,14 @@ const AnalyticsPage = () => {
       if (weightData.success) setWeightHistory(weightData.data.history)
       
       // Create set of dates with progress data
-      if (historyData.success && historyData.data.history) {
+      if (historyData.success && historyData.data.progress) {
         const dates = new Set(
-          historyData.data.history.map(d => 
-            new Date(d.date).toISOString().split('T')[0]
-          )
-        )
-        setProgressDates(dates)
-      }
+           historyData.data.progress.map(d =>
+              new Date(d.date).toISOString().split('T')[0]
+    )
+  )
+  setProgressDates(dates)
+}
     } catch (error) {
       console.error('Analytics fetch error:', error)
       toast.error('Failed to load analytics')
@@ -72,13 +72,13 @@ const AnalyticsPage = () => {
       const dateStr = date.toISOString().split('T')[0]
       
       const { data } = await api.get(`/progress/history?startDate=${dateStr}&endDate=${dateStr}`)
-      if (data.success && data.data.history.length > 0) {
-        setDayProgress(data.data.history[0])
-        toast.success(`📅 Loaded data for ${date.toLocaleDateString()}`)
-      } else {
-        setDayProgress(null)
-        toast.error('No data available for this date')
-      }
+      if (data.success && data.data.progress.length > 0) {
+       setDayProgress(data.data.progress[0])
+       toast.success(`📅 Loaded data for ${date.toLocaleDateString()}`)
+} else {
+    setDayProgress(null)
+    toast.error('No data available for this date')
+}
     } catch (error) {
       toast.error('Failed to load day progress')
     }

@@ -94,23 +94,39 @@ const ProgressPage = () => {
 
   const handleExerciseLog = async () => {
     if (!exerciseType || !exerciseDuration) {
-      toast.error('Please fill all fields')
-      return
-    }
-    try {
-      // For now, we'll just show a success message since the backend might not have this endpoint yet
+     toast.error('Please fill all fields')
+     return
+  }
+
+  try {
+    const data = await progressService.logExercise({
+      name: exerciseType,
+      duration: Number(exerciseDuration),
+      calories: Number(caloriesBurned || 0),
+    })
+
+    if (data.success) {
       toast.success(`${exerciseType} logged successfully!`, {
         icon: '💪',
         duration: 3000,
       })
+
       setShowExerciseLog(false)
       setExerciseType('')
       setExerciseDuration('')
       setCaloriesBurned('')
-    } catch (error) {
-      toast.error('Failed to log exercise')
+
+      fetchData()
+    } else {
+      toast.error(data.message || 'Failed to log exercise')
     }
+  } catch (error) {
+    console.error('Exercise logging error:', error)
+    toast.error(
+      error.response?.data?.message || 'Failed to log exercise'
+    )
   }
+}
 const handleLogWater = async (amount = waterAmount) => {
   if (!amount || Number(amount) <= 0) {
     toast.error('Please enter a valid amount')

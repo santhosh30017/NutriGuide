@@ -102,10 +102,62 @@ export const logMeal = asyncHandler(async (req, res) => {
 });
 
 /**
- * @route   PUT /api/progress/update-weight
- * @desc    Update today's weight
+ * @route   POST /api/progress/log-exercise
+ * @desc    Log an exercise to today's progress
  * @access  Private
  */
+export const logExercise = asyncHandler(async (req, res) => {
+  const { name, duration, calories } = req.body;
+
+  if (!name || !duration) {
+    return res.status(400).json({
+      success: false,
+      message: 'Exercise name and duration are required'
+    });
+  }
+
+  const user = await User.findById(req.user.id);
+
+  const progress = await Progress.getTodayProgress(req.user.id, {
+    calories: user.dailyCalorieTarget,
+    protein: user.macronutrients.protein,
+    carbohydrates: user.macronutrients.carbs,
+    fats: user.macronutrients.fats
+  });
+
+  if (!progress.exercise) {
+    progress.exercise = {
+      duration: 0,
+      caloriesBurned: 0,
+      activities: []
+    };
+  }
+
+  if (!progress.exercise.activities) {
+    progress.exercise.activities = [];
+  }
+
+  const exerciseData = {
+    name,
+    duration: Number(duration),
+    calories: Number(calories || 0)
+  };
+
+  progress.exercise.activities.push(exerciseData);
+  progress.exercise.duration += Number(duration);
+  progress.exercise.caloriesBurned += Number(calories || 0);
+
+  await progress.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Exercise logged successfully',
+    data: {
+      progress
+    }
+  });
+});
+
 export const updateWeight = asyncHandler(async (req, res) => {
   const { weight } = req.body;
   
@@ -452,7 +504,7 @@ export const getWeeklySummary = asyncHandler(async (req, res) => {
     carbohydrates: acc.carbohydrates + day.nutrition.carbohydrates,
     fats: acc.fats + day.nutrition.fats,
     water: acc.water + (day.waterIntake || 0),
-    exercises: acc.exercises + (day.exercises?.length || 0)
+    exercises: acc.exercises + (day.exercise?.activities?.length || 0)
   }), { calories: 0, protein: 0, carbohydrates: 0, fats: 0, water: 0, exercises: 0 });
   
   const avgCalories = progressData.length > 0 ? Math.round(totals.calories / progressData.length) : 0;
